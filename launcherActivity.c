@@ -6,6 +6,7 @@
 #include "soundAndDmaTest.h"
 #include "spriteTest.h"
 #include "biosMathTest.h"
+#include "neraiActivity.h"
 
 
 short LauncherInit(LauncherActivityWork *aw){
@@ -26,6 +27,9 @@ short LauncherInit(LauncherActivityWork *aw){
 	print(4,7,"MATH TEST");
 	aw->Menu[3].InitAddr = BiosMathTestInit;
 	aw->Menu[3].UpdateAddr = BiosMathTestUpdate;
+	print(4,8,"NERAI");
+	aw->Menu[4].InitAddr = NeraiInit;
+	aw->Menu[4].UpdateAddr = NeraiUpdate;
 
 	return false;
 }
@@ -36,7 +40,7 @@ short LauncherUpdate(LauncherActivityWork *aw){
 	print(2,aw->Select + 4," ");
 
 	if(pad & PADUP && aw->Select > 0) aw->Select--;
-	if(pad & PADDOWN && aw->Select < 3) aw->Select++;
+	if(pad & PADDOWN && aw->Select < 4) aw->Select++;
 	if(pad & PADB){
 		NextActivity(aw->Menu[aw->Select].InitAddr,aw->Menu[aw->Select].UpdateAddr);
 		return true;
