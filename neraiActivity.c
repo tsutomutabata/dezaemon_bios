@@ -397,7 +397,7 @@ short NeraiUpdate(NeraiActivityWork *aw){
 			print(14,8,"NERAI");
 			print(8,14,"HIGH SCORE");
 			print(10,18,"PRESS B BUTTON");
-			bcdPrint(19,14,4,aw->Score);
+			bcdPrint(19,14,4,aw->HighScore);
 			aw->UpdateStep++;
 			return true;
 		case 1:
