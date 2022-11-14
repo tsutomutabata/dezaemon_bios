@@ -10,7 +10,9 @@ OBJ		= crt0.o \
 		  launcherActivity.o \
 		  spriteTest.o \
 		  soundAndDmaTest.o \
-		  biosMathTest.o 
+		  biosMathTest.o  \
+		  kakushi.o  \
+		  swatchinNeraiActivity.o
 
 AS		= wdc816as
 CC		= wdc816cc
