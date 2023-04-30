@@ -11,7 +11,8 @@ OBJ		= crt0.o \
 		  spriteTest.o \
 		  soundAndDmaTest.o \
 		  biosMathTest.o  \
-		  neraiActivity.o
+		  kakushi.o  \
+		  swatchinNeraiActivity.o
 
 AS		= wdc816as
 CC		= wdc816cc

@@ -8,6 +8,8 @@
 #include "biosMathTest.h"
 #include "neraiActivity.h"
 
+#include "kakushi.h"
+#include "swatchinNeraiActivity.h"
 
 short LauncherInit(LauncherActivityWork *aw){
 	cls();
@@ -31,6 +33,12 @@ short LauncherInit(LauncherActivityWork *aw){
 	aw->Menu[4].InitAddr = NeraiInit;
 	aw->Menu[4].UpdateAddr = NeraiUpdate;
 
+	print(4,9,"KAKUSHI");
+	aw->Menu[5].InitAddr = KakushiInit;
+	aw->Menu[5].UpdateAddr = KakushiUpdate;
+	print(4,10,"DEZA SWATCH IN NERAI");
+	aw->Menu[6].InitAddr = SwatchinNeraiInit;
+	aw->Menu[6].UpdateAddr = SwatchinNeraiUpdate;
 	return false;
 }
 
@@ -40,7 +48,7 @@ short LauncherUpdate(LauncherActivityWork *aw){
 	print(2,aw->Select + 4," ");
 
 	if(pad & PADUP && aw->Select > 0) aw->Select--;
-	if(pad & PADDOWN && aw->Select < 4) aw->Select++;
+	if(pad & PADDOWN && aw->Select < 6) aw->Select++;
 	if(pad & PADB){
 		NextActivity(aw->Menu[aw->Select].InitAddr,aw->Menu[aw->Select].UpdateAddr);
 		return true;
