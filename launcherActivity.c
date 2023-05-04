@@ -7,6 +7,7 @@
 #include "spriteTest.h"
 #include "biosMathTest.h"
 #include "neraiActivity.h"
+#include "bgActivity.h"
 
 #include "kakushi.h"
 #include "swatchinNeraiActivity.h"
@@ -39,6 +40,11 @@ short LauncherInit(LauncherActivityWork *aw){
 	print(4,10,"DEZA SWATCH IN NERAI");
 	aw->Menu[6].InitAddr = SwatchinNeraiInit;
 	aw->Menu[6].UpdateAddr = SwatchinNeraiUpdate;
+
+	print(4,11,"BG TEST");
+	aw->Menu[7].InitAddr = BgInit;
+	aw->Menu[7].UpdateAddr = BgUpdate;
+
 	return false;
 }
 
@@ -48,7 +54,7 @@ short LauncherUpdate(LauncherActivityWork *aw){
 	print(2,aw->Select + 4," ");
 
 	if(pad & PADUP && aw->Select > 0) aw->Select--;
-	if(pad & PADDOWN && aw->Select < 6) aw->Select++;
+	if(pad & PADDOWN && aw->Select < 7) aw->Select++;
 	if(pad & PADB){
 		NextActivity(aw->Menu[aw->Select].InitAddr,aw->Menu[aw->Select].UpdateAddr);
 		return true;

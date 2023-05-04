@@ -3,3 +3,6 @@
 *.tmp
 *.b7e
 *.b7f
+*.lst
+*.map
+*.sym

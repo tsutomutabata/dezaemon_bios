@@ -9,7 +9,7 @@ typedef struct {
 
 typedef struct {
 	short		Select;	
-	Launcher	Menu[7];
+	Launcher	Menu[8];
 } LauncherActivityWork;
 
 
