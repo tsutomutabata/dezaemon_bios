@@ -13,6 +13,7 @@ short BgInit(BgActivityWork *aw){
 			cls();
 			setMouseCursor(0);
 			print(2,2,"BG TEST");
+			print(0,20,"PRESS Y TO HDMA MODE");
 			print(0,22,"PRESS ARROW KEY TO SCROLL");
 			print(0,24,"PRESS A BUTTON TO BG ENABLE CHANGE");
 			print(0,26,"PRESS X BUTTON TO SPECIAL MENU");
@@ -91,7 +92,28 @@ short BgInit(BgActivityWork *aw){
 		case 9:
 			if(!isDmaBusy()) aw->InitStep++;
 			break;
-		case 10:
+		case 10:	// H-DMA Setup
+			aw->HdmaCommand[0].Size = 0x80 + 64;
+			aw->HdmaCommand[0].Addr = (unsigned short)((unsigned long)&aw->HdmaBuff[0] & 0xffff);
+			aw->HdmaCommand[1].Size = 0x80 + 64;
+			aw->HdmaCommand[1].Addr = (unsigned short)((unsigned long)&aw->HdmaBuff[64] & 0xffff);
+			aw->HdmaCommand[2].Size = 0x80 + 64;
+			aw->HdmaCommand[2].Addr = (unsigned short)((unsigned long)&aw->HdmaBuff[128] & 0xffff);
+			aw->HdmaCommand[3].Size = 0x80 + 32;
+			aw->HdmaCommand[3].Addr = (unsigned short)((unsigned long)&aw->HdmaBuff[192] & 0xffff);
+			aw->HdmaCommand[4].Size = 0;
+			aw->HdmaCommand[4].Addr = 0;
+			SFCIO_SET16(ATBLADD1,(unsigned short)((unsigned long)aw->HdmaCommand & 0xffff));
+			SFCIO_SET8(ATBLBNK1,0x7f);		// Activity work ram bank
+			SFCIO_SET8(DTBNK1,0x7f);		// Activity work ram bank
+			SFCIO_SET8(BBUSADD1,BG1HOFS & 0xff);
+			SFCIO_SET8(DMAMOD1,0x42);		// Indirect and incliment 2 byte trans mode
+			*((unsigned char *)HDMASWITCH) = 0;
+			aw->Gain = 0x80;
+			aw->AngularVelocity = 0x200;
+			aw->InitStep++;
+			break;
+		case 11:
 			SFCIO_SET8(TM,0x15);				// Enable disp BG1,BG3 and Obj
 			aw->DispBg = 1;
 			aw->Hpos = 0;
@@ -102,51 +124,104 @@ short BgInit(BgActivityWork *aw){
 	return true;
 }
 
-
 short BgUpdate(BgActivityWork *aw){
 	unsigned short padT = readTriggerPad();
 	unsigned short pad = readPad();
+	short TmpAngle,TmpVal,TmpPos;
+	short i;
+	unsigned short *p;
+	long mul;
 	if(padT & PADX){
 		SFCIO_SET8(TM,0x14);				// Enable disp BG3 and Obj
 		setMouseCursor(1);
 		return false;
 	}
-	switch(aw->DispBg){
-		case 0: 
-			print(2,3,"     "); 
-			break;
-		case 1: 
-			print(2,3,"BG1  "); 
-			break;
-		case 2: 
-			print(2,3,"BG2  "); 
-			break;
-		case 3: 
-			print(2,3,"BG1/2"); 
-			break;
+	if(padT & PADY){
+		aw->Mode++;
+		aw->Mode &= 1;
+		print(0,3,"             ");
+		print(0,4,"             ");
+		print(0,5,"             ");
+		print(0,6,"             ");
+		if(aw->Mode){
+			print(2,3,"HDMA MODE");
+			print(3,4,   "GAIN");
+			print(2,5,  "ANGLE");
+			print(0,6,"VELOCTY");
+		}
 	}
+	if(aw->Mode == 0){
+		*((unsigned char *)HDMASWITCH) = 0;	// Disable HDMA
+		switch(aw->DispBg){
+			case 0: 
+				print(2,3,"     "); 
+				break;
+			case 1: 
+				print(2,3,"BG1  "); 
+				break;
+			case 2: 
+				print(2,3,"BG2  "); 
+				break;
+			case 3: 
+				print(2,3,"BG1/2"); 
+				break;
+		}
 
-	if(padT & PADA){
-		aw->DispBg++;
-		aw->DispBg &= 3;
-		SFCIO_SET8(TM,0x14 | aw->DispBg);
+		if(padT & PADA){
+			aw->DispBg++;
+			aw->DispBg &= 3;
+			SFCIO_SET8(TM,0x14 | aw->DispBg);
+		}
+		if(pad & PADRIGHT){
+			aw->Hpos++;
+		}
+		if(pad & PADLEFT){
+			aw->Hpos--;
+		}
+		if(pad & PADUP){
+			aw->Vpos--;
+		}
+		if(pad & PADDOWN){
+			aw->Vpos++;
+		}
+		*(short *)BG1HBUFF = aw->Hpos;
+		*(short *)BG2HBUFF = aw->Hpos >> 1;
+		*(short *)BG1VBUFF = aw->Vpos;
+		*(short *)BG2VBUFF = aw->Vpos >> 1;
+	}else{
+		SFCIO_SET8(TM,0x15);
+		aw->DispBg = 1;
+		*((unsigned char *)HDMASWITCH) = 2;	// Enable CH1 HDMA
+		hexPrint(8,4,3,aw->Gain);
+		hexPrint(8,5,3,aw->Angle);
+		hexPrint(8,6,3,aw->AngularVelocity);
+		if(pad & PADRIGHT){
+			aw->Gain++;
+		}
+		if(pad & PADLEFT){
+			aw->Gain--;
+		}
+		if(pad & PADUP){
+			aw->Angle+=0x100;
+		}
+		if(pad & PADDOWN){
+			aw->Angle-=0x100;
+		}
+		if(pad & PADL){
+			aw->AngularVelocity++;
+		}
+		if(pad & PADR){
+			aw->AngularVelocity--;
+		}
+		TmpAngle = aw->Angle;
+		p = aw->HdmaBuff;
+		for(i = 0; i < 224; i++){
+			TmpVal = biosSin(TmpAngle >> 8);
+			biosHwMul32(TmpVal,aw->Gain,&mul);
+			*p++ = mul >> 16;
+			TmpAngle += aw->AngularVelocity;
+		}
 	}
-	if(pad & PADRIGHT){
-		aw->Hpos++;
-	}
-	if(pad & PADLEFT){
-		aw->Hpos--;
-	}
-	if(pad & PADUP){
-		aw->Vpos--;
-	}
-	if(pad & PADDOWN){
-		aw->Vpos++;
-	}
-	*(short *)BG1HBUFF = aw->Hpos;
-	*(short *)BG2HBUFF = aw->Hpos >> 1;
-	*(short *)BG1VBUFF = aw->Vpos;
-	*(short *)BG2VBUFF = aw->Vpos >> 1;
 	return true;
 }
 
